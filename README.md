@@ -121,7 +121,7 @@ sentiment-analysis-transformer/
 ├── .gitignore                        # Excludes local artifacts and datasets
 ├── README.md                         # Project documentation and benchmarks
 ├── sentiment_transformer.pt          # Trained PyTorch model checkpoint weights
-├── SentimentScope_starter_vJ.ipynb   # Complete exploratory and training notebook
+├── SentimentScope_sentiment_analysis.ipynb # Complete exploratory and training notebook
 ├── src/
 │   ├── __init__.py                   # Package exports
 │   ├── config.py                     # Centralized model hyperparameters
