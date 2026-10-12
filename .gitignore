@@ -1,0 +1,29 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Large dataset archives and unpacked datasets
+*.tar
+*.tar.gz
+*.gz
+aclImdb/
+starter/aclImdb/
+starter/aclImdb_v1.tar/
+starter/aclImdb_v1.tar.gz
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# Private course PDFs and submission screenshots
+*.pdf
+Setup.png
+Submit_*.png
+Submitting*.png
+
+# Environments
+.env
+.venv
+env/
+venv/
