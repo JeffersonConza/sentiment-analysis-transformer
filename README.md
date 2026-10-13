@@ -21,6 +21,19 @@ An end-to-end Natural Language Processing (NLP) system implementing and training
 
 ---
 
+## 📈 Exploratory Data Analysis & Sequence Length
+
+To determine an optimal context length that balances representational capacity and multi-head attention complexity ($\mathcal{O}(N^2)$), review word count distributions were analyzed across sentiment classes:
+
+<p align="center">
+  <img src="assets/review_length_distribution.png" width="620" alt="Review Word Count Distribution by Sentiment" />
+</p>
+
+- **Review Length Characteristics**: The distribution exhibits a right-skewed profile across both classes (mean: ~233 words, median: 174 words).
+- **Context Length Optimization**: Setting `context_size = 128` captures the primary sentiment markers in the opening sentences while keeping sequence computations and memory usage highly efficient.
+
+---
+
 ## 🏗️ Architecture & Model Configuration
 
 | Hyperparameter | Value | Description |
@@ -127,7 +140,8 @@ pytest tests/
 sentiment-analysis-transformer/
 ├── .github/workflows/ci.yml          # Automated CI pipeline running unit tests on push
 ├── assets/
-│   └── confusion_matrix.png          # High-resolution test confusion matrix
+│   ├── confusion_matrix.png          # High-resolution test confusion matrix
+│   └── review_length_distribution.png # Distribution of review lengths by sentiment (EDA)
 ├── docs/
 │   └── REVIEW_FEEDBACK.md            # Official Udacity reviewer evaluation report
 ├── requirements.txt                  # Python dependencies
