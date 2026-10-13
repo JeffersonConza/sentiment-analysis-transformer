@@ -1,6 +1,7 @@
 # SentimentScope: Transformer-based Sentiment Analysis in PyTorch
 
 [![CI](https://github.com/JeffersonConza/sentiment-analysis-transformer/actions/workflows/ci.yml/badge.svg)](https://github.com/JeffersonConza/sentiment-analysis-transformer/actions/workflows/ci.yml)
+![Udacity Review](https://img.shields.io/badge/Udacity%20Review-Passed%20(Attempt%201)-success?style=for-the-badge&logo=checkmarx&logoColor=white)
 ![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)
 ![Transformers](https://img.shields.io/badge/Hugging%20Face-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black)
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
@@ -15,8 +16,8 @@ An end-to-end Natural Language Processing (NLP) system implementing and training
 - **From-Scratch PyTorch Transformer**: Multi-head self-attention (`MultiHeadAttention`), causal/bidirectional attention toggle, position embeddings, GELU feed-forward blocks, and layer normalization built without pre-packaged transformer heads.
 - **Sequence Classification Adaptation**: Adapts encoder/decoder blocks for classification using sequence **mean pooling** (`dim=1`) mapped to a linear classification projection head.
 - **Subword Tokenization**: Integrated Hugging Face's `AutoTokenizer` (`bert-base-uncased`) with padding and truncation to standardize sequences to a 128-token context window.
-- **Strong Performance**: Achieved **76.88% test accuracy** on 25,000 unseen test reviews within 3 epochs of training using `AdamW` and cross-entropy loss.
-- **Modular Production Code**: Refactored from experimental notebooks into modular Python packages (`src/`), complete with CLI utilities, unit tests (`pytest`), and GitHub Actions CI.
+- **Official Evaluation (Passed on Attempt 1)**: Verified by Udacity reviewer with **76.88% test accuracy** on 25,000 unseen test reviews, passing all rubric criteria with top scores ([Full Review Feedback](docs/REVIEW_FEEDBACK.md)).
+- **Modular Production Code**: Refactored into a modular Python package (`src/`), complete with CLI utilities, unit tests (`pytest`), and GitHub Actions CI.
 
 ---
 
@@ -69,6 +70,19 @@ The model was trained for **3 epochs** using `AdamW` (learning rate `3e-4`) on a
 | **Epoch 3** | **0.4287** | **77.52%** |
 | **Final Test Set Evaluation** | — | **76.88%** |
 
+### Detailed Classification Metrics (IMDB Test Set)
+
+| Metric | Negative (Class 0) | Positive (Class 1) | Overall / Macro Avg |
+| :--- | :---: | :---: | :---: |
+| **Precision** | **0.7744** | **0.7632** | 0.7688 |
+| **Recall** | **0.7632** | **0.7744** | 0.7688 |
+| **F1-Score** | **0.7688** | **0.7688** | **0.7688** |
+| **Support** | 12,500 reviews | 12,500 reviews | 25,000 reviews |
+
+<p align="center">
+  <img src="assets/confusion_matrix.png" width="480" alt="IMDB Sentiment Analysis Confusion Matrix" />
+</p>
+
 ---
 
 ## 🚀 Quickstart & Usage
@@ -94,14 +108,9 @@ Sentiment: Positive (98.87% confidence)
 ============================================================
 ```
 
-### 3. Programmatic Python API
-```python
-from src.infer import SentimentPredictor
-
-predictor = SentimentPredictor(checkpoint_path="sentiment_transformer.pt")
-result = predictor.predict("The plot was completely predictable and dull.")
-print(result)
-# {'text': 'The plot was completely predictable and dull.', 'label': 'Negative', 'class_id': 0, 'confidence': 96.42}
+### 3. Generate Classification Metrics & Confusion Matrix
+```bash
+python -m src.evaluate --data-dir aclImdb --checkpoint sentiment_transformer.pt
 ```
 
 ### 4. Running the Unit Tests
@@ -117,8 +126,13 @@ pytest tests/
 ```text
 sentiment-analysis-transformer/
 ├── .github/workflows/ci.yml          # Automated CI pipeline running unit tests on push
+├── assets/
+│   └── confusion_matrix.png          # High-resolution test confusion matrix
+├── docs/
+│   └── REVIEW_FEEDBACK.md            # Official Udacity reviewer evaluation report
 ├── requirements.txt                  # Python dependencies
 ├── .gitignore                        # Excludes local artifacts and datasets
+├── LICENSE                           # MIT License
 ├── README.md                         # Project documentation and benchmarks
 ├── sentiment_transformer.pt          # Trained PyTorch model checkpoint weights
 ├── SentimentScope_sentiment_analysis.ipynb # Complete exploratory and training notebook
@@ -128,7 +142,8 @@ sentiment-analysis-transformer/
 │   ├── model.py                      # MultiHeadAttention, Block, SentimentTransformer
 │   ├── dataset.py                    # IMDBDataset and DataLoader pipeline
 │   ├── train.py                      # Standalone CLI training script
-│   └── infer.py                      # SentimentPredictor inference engine
+│   ├── infer.py                      # SentimentPredictor inference engine
+│   └── evaluate.py                   # Classification report & confusion matrix generator
 └── tests/
     ├── __init__.py
     └── test_model.py                 # Unit tests for transformer forward passes & shapes
@@ -139,3 +154,4 @@ sentiment-analysis-transformer/
 ## 📜 Acknowledgements & Dataset
 - Dataset: [Stanford IMDB Sentiment Analysis Dataset](https://ai.stanford.edu/~amaas/data/sentiment/) (Maas et al., 2011).
 - Developed as part of the **AWS AI & ML Scholarship / Udacity AI Programming** program.
+- Official Review Status: **Passed on Attempt 1** ([Report Details](docs/REVIEW_FEEDBACK.md)).
