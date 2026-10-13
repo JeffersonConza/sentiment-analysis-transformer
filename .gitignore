@@ -22,6 +22,9 @@ Setup.png
 Submit_*.png
 Submitting*.png
 
+# Local personal archives
+archive/
+
 # Environments
 .env
 .venv
