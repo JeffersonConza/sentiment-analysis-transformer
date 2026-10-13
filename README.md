@@ -1,6 +1,19 @@
+---
+title: SentimentScope - PyTorch Transformer
+emoji: 🎬
+colorFrom: indigo
+colorTo: purple
+sdk: streamlit
+sdk_version: 1.30.0
+app_file: app.py
+pinned: false
+license: mit
+---
+
 # SentimentScope: Transformer-based Sentiment Analysis in PyTorch
 
 [![CI](https://github.com/JeffersonConza/sentiment-analysis-transformer/actions/workflows/ci.yml/badge.svg)](https://github.com/JeffersonConza/sentiment-analysis-transformer/actions/workflows/ci.yml)
+[![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue?style=for-the-badge)](docs/HUGGINGFACE_DEPLOYMENT.md)
 ![Udacity Review](https://img.shields.io/badge/Udacity%20Review-Passed%20(Attempt%201)-success?style=for-the-badge&logo=checkmarx&logoColor=white)
 ![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)
 ![Transformers](https://img.shields.io/badge/Hugging%20Face-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black)
@@ -16,9 +29,10 @@ An end-to-end Natural Language Processing (NLP) system implementing and training
 
 - **From-Scratch PyTorch Transformer**: Multi-head self-attention (`MultiHeadAttention`), causal/bidirectional attention toggle, position embeddings, GELU feed-forward blocks, and layer normalization built without pre-packaged transformer heads.
 - **Sequence Classification Adaptation**: Adapts encoder/decoder blocks for classification using sequence **mean pooling** (`dim=1`) mapped to a linear classification projection head.
+- **Explainable AI (XAI) & Attention Heatmaps**: Real-time extraction of token-level self-attention weights in [`app.py`](app.py) to visualize word importance heatmaps and 2D query-key alignment matrices.
 - **Subword Tokenization**: Integrated Hugging Face's `AutoTokenizer` (`bert-base-uncased`) with padding and truncation to standardize sequences to a 128-token context window.
 - **Official Evaluation (Passed on Attempt 1)**: Verified by Udacity reviewer with **76.88% test accuracy** on 25,000 unseen test reviews, passing all rubric criteria with top scores ([Full Review Feedback](docs/REVIEW_FEEDBACK.md)).
-- **Interactive Web App & Production Code**: Includes an interactive **Streamlit** demo interface (`app.py`), modular Python package (`src/`), CLI utilities, unit tests (`pytest`), and GitHub Actions CI.
+- **Interactive Web App & Cloud Ready**: Includes an interactive **Streamlit** demo interface (`app.py`), modular Python package (`src/`), CLI utilities, unit tests (`pytest`), and GitHub Actions CI.
 
 ---
 
@@ -157,7 +171,8 @@ sentiment-analysis-transformer/
 │   ├── REVIEW_FEEDBACK.md            # Official Udacity reviewer evaluation report
 │   ├── RELEASE_NOTES_v1.0.0.md       # Official v1.0.0 release notes & changelog
 │   ├── NOTEBOOK_WALKTHROUGH.md       # Complete rendered notebook walkthrough & outputs
-│   └── PROJECT_CONTEXT.md            # Session memory, technical decisions & roadmap
+│   ├── PROJECT_CONTEXT.md            # Session memory, technical decisions & roadmap
+│   └── HUGGINGFACE_DEPLOYMENT.md     # 1-click cloud deployment guide for Spaces
 ├── app.py                            # Interactive Streamlit web application demo
 ├── requirements.txt                  # Python dependencies
 ├── .gitignore                        # Excludes local artifacts and datasets

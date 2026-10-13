@@ -74,3 +74,14 @@ def test_causal_mask_toggle(dummy_config, dummy_input):
     out = head_causal(dummy_input)
     b, t, d = dummy_input.shape
     assert out.shape == (b, t, dummy_config["head_size"])
+
+
+def test_attention_weights_extraction(dummy_config):
+    model = SentimentTransformer(dummy_config)
+    token_ids = torch.randint(0, dummy_config["vocabulary_size"], (2, dummy_config["context_size"]))
+    logits, attn_map = model(token_ids, return_attention=True)
+    assert logits.shape == (2, dummy_config["num_classes"])
+    assert attn_map.shape == (2, dummy_config["context_size"], dummy_config["context_size"])
+    # Probabilities along last dimension should sum to ~1
+    row_sums = attn_map.sum(dim=-1)
+    assert torch.allclose(row_sums, torch.ones_like(row_sums), atol=1e-5)

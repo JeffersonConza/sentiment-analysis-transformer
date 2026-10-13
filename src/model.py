@@ -20,13 +20,15 @@ class AttentionHead(nn.Module):
         casual_attention_mask = torch.tril(torch.ones(config["context_size"], config["context_size"]))
         self.register_buffer("casual_attention_mask", casual_attention_mask)
 
-    def forward(self, x):
+    def forward(self, x, return_attention=False):
         """
         Forward pass for single attention head.
         Args:
             x (torch.Tensor): Input tensor of shape (B, T, d_embed)
+            return_attention (bool): Whether to return attention weights
         Returns:
             torch.Tensor: Output tensor of shape (B, T, head_size)
+            (optional) torch.Tensor: Attention weights of shape (B, T, T)
         """
         batch_size, tokens_num, d_embed = x.shape
         Q = self.Q_weights(x)  # (B, T, head_size)
@@ -43,10 +45,13 @@ class AttentionHead(nn.Module):
                 float("-inf")
             )
 
-        attention_scores = torch.softmax(attention_scores, dim=-1)
-        attention_scores = self.dropout(attention_scores)
+        attention_weights = torch.softmax(attention_scores, dim=-1)
+        dropped_weights = self.dropout(attention_weights)
 
-        return attention_scores @ V
+        out = dropped_weights @ V
+        if return_attention:
+            return out, attention_weights
+        return out
 
 
 class MultiHeadAttention(nn.Module):
@@ -58,11 +63,24 @@ class MultiHeadAttention(nn.Module):
         self.linear = nn.Linear(config["heads_num"] * config["head_size"], config["d_embed"])
         self.dropout = nn.Dropout(config["dropout_rate"])
 
-    def forward(self, x):
-        heads_outputs = [head(x) for head in self.heads]
-        out = torch.cat(heads_outputs, dim=-1)
-        out = self.linear(out)
-        return self.dropout(out)
+    def forward(self, x, return_attention=False):
+        if return_attention:
+            heads_outputs = []
+            heads_attns = []
+            for head in self.heads:
+                h_out, h_attn = head(x, return_attention=True)
+                heads_outputs.append(h_out)
+                heads_attns.append(h_attn)
+            out = torch.cat(heads_outputs, dim=-1)
+            out = self.linear(out)
+            # Average attention weights across all heads: shape (B, T, T)
+            avg_attention = torch.mean(torch.stack(heads_attns, dim=1), dim=1)
+            return self.dropout(out), avg_attention
+        else:
+            heads_outputs = [head(x) for head in self.heads]
+            out = torch.cat(heads_outputs, dim=-1)
+            out = self.linear(out)
+            return self.dropout(out)
 
 
 class FeedForward(nn.Module):
@@ -91,10 +109,16 @@ class Block(nn.Module):
         self.feed_forward = FeedForward(config)
         self.layer_norm_2 = nn.LayerNorm(config["d_embed"])
 
-    def forward(self, x):
-        x = x + self.multi_head(self.layer_norm_1(x))
-        x = x + self.feed_forward(self.layer_norm_2(x))
-        return x
+    def forward(self, x, return_attention=False):
+        if return_attention:
+            attn_out, attn_weights = self.multi_head(self.layer_norm_1(x), return_attention=True)
+            x = x + attn_out
+            x = x + self.feed_forward(self.layer_norm_2(x))
+            return x, attn_weights
+        else:
+            x = x + self.multi_head(self.layer_norm_1(x))
+            x = x + self.feed_forward(self.layer_norm_2(x))
+            return x
 
 
 class SentimentTransformer(nn.Module):
@@ -110,18 +134,20 @@ class SentimentTransformer(nn.Module):
         self.token_embedding_layer = nn.Embedding(config["vocabulary_size"], config["d_embed"])
         self.positional_embedding_layer = nn.Embedding(config["context_size"], config["d_embed"])
         
-        self.layers = nn.Sequential(*[Block(config) for _ in range(config["layers_num"])])
+        self.layers = nn.ModuleList([Block(config) for _ in range(config["layers_num"])])
         self.layer_norm = nn.LayerNorm(config["d_embed"])
         
         # Classification head: projects pooled representation to class logits
         self.classifier = nn.Linear(config["d_embed"], config["num_classes"], bias=False)
 
-    def forward(self, token_ids):
+    def forward(self, token_ids, return_attention=False):
         """
         Args:
             token_ids (torch.Tensor): Input token indices of shape (B, T)
+            return_attention (bool): Whether to return attention weights from final layer
         Returns:
             torch.Tensor: Logits of shape (B, num_classes)
+            (optional) torch.Tensor: Attention weights of shape (B, T, T)
         """
         batch_size, tokens_num = token_ids.shape
 
@@ -132,7 +158,13 @@ class SentimentTransformer(nn.Module):
         x = x + pos_embed.unsqueeze(0)
 
         # Step 2: Transformer layers & normalization
-        x = self.layers(x)
+        attn_map = None
+        for i, layer in enumerate(self.layers):
+            if return_attention and i == len(self.layers) - 1:
+                x, attn_map = layer(x, return_attention=True)
+            else:
+                x = layer(x)
+
         x = self.layer_norm(x)
 
         # Step 3: Mean pooling across sequence dimension (dim=1)
@@ -140,6 +172,8 @@ class SentimentTransformer(nn.Module):
 
         # Step 4: Classification head
         logits = self.classifier(pooled)
+        if return_attention:
+            return logits, attn_map
         return logits
 
 
