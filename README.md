@@ -156,7 +156,8 @@ sentiment-analysis-transformer/
 ├── docs/
 │   ├── REVIEW_FEEDBACK.md            # Official Udacity reviewer evaluation report
 │   ├── RELEASE_NOTES_v1.0.0.md       # Official v1.0.0 release notes & changelog
-│   └── NOTEBOOK_WALKTHROUGH.md       # Complete rendered notebook walkthrough & outputs
+│   ├── NOTEBOOK_WALKTHROUGH.md       # Complete rendered notebook walkthrough & outputs
+│   └── PROJECT_CONTEXT.md            # Session memory, technical decisions & roadmap
 ├── app.py                            # Interactive Streamlit web application demo
 ├── requirements.txt                  # Python dependencies
 ├── .gitignore                        # Excludes local artifacts and datasets
