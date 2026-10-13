@@ -22,16 +22,19 @@ An end-to-end Natural Language Processing (NLP) system implementing and training
 
 ---
 
-## 📈 Exploratory Data Analysis & Sequence Length
+## 📈 Exploratory Data Analysis (EDA)
 
-To determine an optimal context length that balances representational capacity and multi-head attention complexity ($\mathcal{O}(N^2)$), review word count distributions were analyzed across sentiment classes:
+The IMDB training dataset consists of 25,000 labeled reviews with a perfectly balanced class distribution and right-skewed length profile:
 
 <p align="center">
-  <img src="assets/review_length_distribution.png" width="620" alt="Review Word Count Distribution by Sentiment" />
+  <img src="assets/label_distribution.png" width="360" alt="Training Label Distribution" />
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="assets/review_length_distribution.png" width="460" alt="Review Word Count Distribution by Sentiment" />
 </p>
 
+- **Balanced Class Distribution**: Exactly 12,500 negative (0) and 12,500 positive (1) reviews ensure zero class imbalance bias during loss backpropagation.
 - **Review Length Characteristics**: The distribution exhibits a right-skewed profile across both classes (mean: ~233 words, median: 174 words).
-- **Context Length Optimization**: Setting `context_size = 128` captures the primary sentiment markers in the opening sentences while keeping sequence computations and memory usage highly efficient.
+- **Context Length Optimization**: Setting `context_size = 128` captures the primary sentiment markers in opening sentences while bounding quadratic self-attention complexity ($\mathcal{O}(N^2)$) and GPU memory consumption.
 
 ---
 
@@ -148,10 +151,12 @@ sentiment-analysis-transformer/
 ├── .github/workflows/ci.yml          # Automated CI pipeline running unit tests on push
 ├── assets/
 │   ├── confusion_matrix.png          # High-resolution test confusion matrix
+│   ├── label_distribution.png        # Training set 50/50 class balance plot (EDA)
 │   └── review_length_distribution.png # Distribution of review lengths by sentiment (EDA)
 ├── docs/
 │   ├── REVIEW_FEEDBACK.md            # Official Udacity reviewer evaluation report
-│   └── RELEASE_NOTES_v1.0.0.md       # Official v1.0.0 release notes & changelog
+│   ├── RELEASE_NOTES_v1.0.0.md       # Official v1.0.0 release notes & changelog
+│   └── NOTEBOOK_WALKTHROUGH.md       # Complete rendered notebook walkthrough & outputs
 ├── app.py                            # Interactive Streamlit web application demo
 ├── requirements.txt                  # Python dependencies
 ├── .gitignore                        # Excludes local artifacts and datasets

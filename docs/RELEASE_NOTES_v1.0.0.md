@@ -65,10 +65,12 @@ sentiment-analysis-transformer/
 ├── .github/workflows/ci.yml          # Automated CI workflow
 ├── assets/
 │   ├── confusion_matrix.png          # High-resolution test confusion matrix
+│   ├── label_distribution.png        # Training set 50/50 class balance plot (EDA)
 │   └── review_length_distribution.png # EDA review word count distribution plot
 ├── docs/
 │   ├── REVIEW_FEEDBACK.md            # Official Udacity reviewer evaluation report
-│   └── RELEASE_NOTES_v1.0.0.md       # This release document
+│   ├── RELEASE_NOTES_v1.0.0.md       # This release document
+│   └── NOTEBOOK_WALKTHROUGH.md       # Complete rendered notebook walkthrough & outputs
 ├── app.py                            # Interactive Streamlit web application
 ├── requirements.txt                  # Python dependencies
 ├── .gitignore                        # Git exclusion rules
