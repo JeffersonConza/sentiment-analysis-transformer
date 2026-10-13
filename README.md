@@ -150,7 +150,8 @@ sentiment-analysis-transformer/
 │   ├── confusion_matrix.png          # High-resolution test confusion matrix
 │   └── review_length_distribution.png # Distribution of review lengths by sentiment (EDA)
 ├── docs/
-│   └── REVIEW_FEEDBACK.md            # Official Udacity reviewer evaluation report
+│   ├── REVIEW_FEEDBACK.md            # Official Udacity reviewer evaluation report
+│   └── RELEASE_NOTES_v1.0.0.md       # Official v1.0.0 release notes & changelog
 ├── app.py                            # Interactive Streamlit web application demo
 ├── requirements.txt                  # Python dependencies
 ├── .gitignore                        # Excludes local artifacts and datasets
