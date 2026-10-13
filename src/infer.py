@@ -55,11 +55,20 @@ class SentimentPredictor:
         label = "Positive" if pred_class == 1 else "Negative"
         confidence = probs[0][pred_class].item() * 100.0
 
+        # Raw token count before truncation
+        raw_token_count = len(self.tokenizer.encode(review_text, truncation=False))
+
         return {
             "text": review_text,
             "label": label,
             "class_id": pred_class,
-            "confidence": round(confidence, 2)
+            "confidence": round(confidence, 2),
+            "probabilities": {
+                "Negative": round(probs[0][0].item() * 100.0, 2),
+                "Positive": round(probs[0][1].item() * 100.0, 2),
+            },
+            "token_count": raw_token_count,
+            "tokens_used": min(raw_token_count, self.config["context_size"]),
         }
 
     def predict_batch(self, review_texts: list):

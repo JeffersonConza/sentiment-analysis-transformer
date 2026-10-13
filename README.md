@@ -4,6 +4,7 @@
 ![Udacity Review](https://img.shields.io/badge/Udacity%20Review-Passed%20(Attempt%201)-success?style=for-the-badge&logo=checkmarx&logoColor=white)
 ![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)
 ![Transformers](https://img.shields.io/badge/Hugging%20Face-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black)
+![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)
 
@@ -17,7 +18,7 @@ An end-to-end Natural Language Processing (NLP) system implementing and training
 - **Sequence Classification Adaptation**: Adapts encoder/decoder blocks for classification using sequence **mean pooling** (`dim=1`) mapped to a linear classification projection head.
 - **Subword Tokenization**: Integrated Hugging Face's `AutoTokenizer` (`bert-base-uncased`) with padding and truncation to standardize sequences to a 128-token context window.
 - **Official Evaluation (Passed on Attempt 1)**: Verified by Udacity reviewer with **76.88% test accuracy** on 25,000 unseen test reviews, passing all rubric criteria with top scores ([Full Review Feedback](docs/REVIEW_FEEDBACK.md)).
-- **Modular Production Code**: Refactored into a modular Python package (`src/`), complete with CLI utilities, unit tests (`pytest`), and GitHub Actions CI.
+- **Interactive Web App & Production Code**: Includes an interactive **Streamlit** demo interface (`app.py`), modular Python package (`src/`), CLI utilities, unit tests (`pytest`), and GitHub Actions CI.
 
 ---
 
@@ -121,12 +122,18 @@ Sentiment: Positive (98.87% confidence)
 ============================================================
 ```
 
-### 3. Generate Classification Metrics & Confusion Matrix
+### 3. Launch Interactive Streamlit Web App
+Launch the web interface locally for real-time sentiment analysis, token diagnostics, and probability gauges:
+```bash
+streamlit run app.py
+```
+
+### 4. Generate Classification Metrics & Confusion Matrix
 ```bash
 python -m src.evaluate --data-dir aclImdb --checkpoint sentiment_transformer.pt
 ```
 
-### 4. Running the Unit Tests
+### 5. Running the Unit Tests
 Verify model components, layer dimensions, and masking logic with `pytest`:
 ```bash
 pytest tests/
@@ -144,6 +151,7 @@ sentiment-analysis-transformer/
 │   └── review_length_distribution.png # Distribution of review lengths by sentiment (EDA)
 ├── docs/
 │   └── REVIEW_FEEDBACK.md            # Official Udacity reviewer evaluation report
+├── app.py                            # Interactive Streamlit web application demo
 ├── requirements.txt                  # Python dependencies
 ├── .gitignore                        # Excludes local artifacts and datasets
 ├── LICENSE                           # MIT License
