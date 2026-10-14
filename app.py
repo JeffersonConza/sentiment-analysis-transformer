@@ -87,13 +87,12 @@ def load_predictor():
 
 # Initialize session state for review text
 if "review_input" not in st.session_state:
-    st.session_state.review_input = "The cinematography was breathtaking, with a gripping narrative and powerhouse performances from the entire cast!"
+    st.session_state.review_input = "An absolute masterpiece! A truly brilliant and fantastic film with wonderful performances and exceptional directing."
 
 # Pre-defined sample reviews
 SAMPLE_REVIEWS = {
     "🌟 Positive": (
-        "An absolute masterpiece of modern cinema! The directing was sharp, the score was mesmerizing, "
-        "and every scene delivered authentic emotional resonance."
+        "An absolute masterpiece! A truly brilliant and fantastic film with wonderful performances and exceptional directing."
     ),
     "👎 Negative": (
         "A dull, completely predictable mess with zero character development. The pacing dragged endlessly "
@@ -323,16 +322,25 @@ if result is not None:
                     text_col = "#5a130b" if norm > 0.6 else "#381c18"
 
                 clean_tok = html.escape(tok_str)
+                is_subword = tok_str.startswith("##")
+                tooltip = (
+                    f"WordPiece Subword: '{clean_tok}' (continuation of preceding word) | Attention: {score_val:.4f}"
+                    if is_subword
+                    else f"Token: '{clean_tok}' | Attention Score: {score_val:.4f}"
+                )
                 html_tokens.append(
                     f'<span class="token-box" style="background-color: {bg}; border: 1px solid {border}; '
-                    f'color: {text_col};" title="Attention Score: {score_val:.4f}">{clean_tok}</span>'
+                    f'color: {text_col};" title="{tooltip}">{clean_tok}</span>'
                 )
 
             st.markdown(
                 f'<div class="heatmap-hero-container">{" ".join(html_tokens)}</div>',
                 unsafe_allow_html=True
             )
-            st.caption("Hover over words to view exact Layer 4 attention weights. Darker colors denote tokens driving the verdict.")
+            st.caption(
+                "Hover tokens to view Layer 4 weights. "
+                "💡 *Note*: Tokens with `##` (e.g. `##zing`) are BERT WordPiece subwords used to tokenize compound/rare words."
+            )
 
     # --- RIGHT PANEL: ATTENTION ANALYTICS & DIAGNOSTICS ---
     with col_xai_right:

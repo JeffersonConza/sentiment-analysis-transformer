@@ -18,12 +18,11 @@ starter/aclImdb_v1.tar.gz
 
 # Private course PDFs and submission screenshots
 *.pdf
-Setup.png
-Submit_*.png
-Submitting*.png
+*.png
 
-# Local personal archives
+# Local personal archives and starter workspace
 archive/
+workspace/
 
 # Environments
 .env
