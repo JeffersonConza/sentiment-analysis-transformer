@@ -1,6 +1,6 @@
 """
 SentimentScope - Interactive Streamlit Web Application
-Single-Screen Viewport Dashboard: Real-time Sentiment Classification & Attention XAI.
+Single-Screen Viewport Dashboard with Dedicated Attention Heatmap Hero Showcase.
 """
 import html
 import numpy as np
@@ -19,52 +19,61 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# High-density CSS to guarantee complete "above-the-fold" single-screen view without scrolling
+# Custom High-Density CSS
 st.markdown("""
 <style>
-    /* Reduce top/bottom padding to fit viewport */
+    /* Full viewport utilization */
     .block-container {
         padding-top: 1rem !important;
         padding-bottom: 0.5rem !important;
-        padding-left: 2rem !important;
-        padding-right: 2rem !important;
+        padding-left: 1.8rem !important;
+        padding-right: 1.8rem !important;
         max-width: 100% !important;
     }
-    /* Compact headings and elements */
     h1, h2, h3, h4, h5, p {
         margin-top: 0.1rem !important;
         margin-bottom: 0.25rem !important;
     }
-    /* Compact token badge */
+    /* Token badge formatting */
     .token-box {
         display: inline-block;
-        padding: 2px 6px;
-        margin: 2px 1px;
-        border-radius: 4px;
+        padding: 3px 7px;
+        margin: 2px 2px;
+        border-radius: 5px;
         font-family: monospace;
-        font-size: 0.88rem;
-        transition: transform 0.1s ease;
+        font-size: 0.90rem;
+        transition: transform 0.1s ease, box-shadow 0.1s ease;
+        cursor: default;
     }
     .token-box:hover {
         transform: scale(1.08);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.12);
     }
-    /* Scrollable token container with fixed height */
-    .token-container {
-        background-color: #fdfdfd;
-        padding: 8px 12px;
-        border-radius: 6px;
-        border: 1px solid #e2e8f0;
-        max-height: 145px;
+    .token-special {
+        background-color: #f1f5f9 !important;
+        color: #64748b !important;
+        border: 1px dashed #cbd5e1 !important;
+        font-style: italic;
+    }
+    /* Hero container for the Attention Heatmap */
+    .heatmap-hero-container {
+        background: #ffffff;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 12px 14px;
+        min-height: 135px;
+        max-height: 200px;
         overflow-y: auto;
-        line-height: 1.8;
+        line-height: 2.1;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
     }
-    /* Streamlit tabs compact styling */
+    /* Streamlit tabs styling */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
+        gap: 6px;
     }
     .stTabs [data-baseweb="tab"] {
-        padding: 4px 10px !important;
-        font-size: 0.85rem !important;
+        padding: 3px 8px !important;
+        font-size: 0.82rem !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -149,10 +158,10 @@ with st.sidebar:
 
 # --- ULTRA-COMPACT 1-LINE HEADER ---
 st.markdown("""
-<div style="display: flex; align-items: baseline; justify-content: space-between; border-bottom: 2px solid #f1f5f9; padding-bottom: 4px; margin-bottom: 10px;">
+<div style="display: flex; align-items: baseline; justify-content: space-between; border-bottom: 2px solid #f1f5f9; padding-bottom: 4px; margin-bottom: 8px;">
     <div>
-        <span style="font-size: 1.45rem; font-weight: 800; color: #0f172a;">🎬 SentimentScope</span>
-        <span style="font-size: 0.90rem; color: #64748b; margin-left: 10px;">From-Scratch PyTorch Transformer & Explainable AI (XAI)</span>
+        <span style="font-size: 1.40rem; font-weight: 800; color: #0f172a;">🎬 SentimentScope</span>
+        <span style="font-size: 0.88rem; color: #64748b; margin-left: 10px;">From-Scratch PyTorch Transformer & Explainable AI (XAI)</span>
     </div>
     <div>
         <span style="background: #e0e7ff; color: #3730a3; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; font-weight: 600;">Test Acc: 76.88%</span>
@@ -162,10 +171,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# --- 2 BALANCED COLUMNS (FIT ENTIRELY IN VIEWPORT) ---
-col_main, col_results = st.columns([1.1, 0.9], gap="medium")
-
-# Execute prediction immediately so both columns have data ready
+# Execute prediction immediately so all sections have data ready
 result = None
 if st.session_state.review_input.strip():
     try:
@@ -175,11 +181,16 @@ if st.session_state.review_input.strip():
         st.error(f"Inference error: {e}")
 
 
-with col_main:
-    # 1. Header & Sample Buttons in a single aligned row
+# ==============================================================================
+# ROW 1: CONTROL & VERDICT HUB (Top Half)
+# ==============================================================================
+col_top_left, col_top_right = st.columns([1.1, 0.9], gap="medium")
+
+with col_top_left:
+    # Header & Sample Buttons in a single aligned row
     col_hdr, col_s1, col_s2, col_s3 = st.columns([1.1, 0.9, 0.9, 0.9])
     with col_hdr:
-        st.markdown("<div style='font-weight: 700; font-size: 0.95rem; margin-top: 4px;'>✍️ Input Review</div>", unsafe_allow_html=True)
+        st.markdown("<div style='font-weight: 700; font-size: 0.92rem; margin-top: 4px;'>✍️ Input Review</div>", unsafe_allow_html=True)
     with col_s1:
         if st.button("🌟 Positive", use_container_width=True):
             set_sample_text(SAMPLE_REVIEWS["🌟 Positive"])
@@ -193,61 +204,164 @@ with col_main:
             set_sample_text(SAMPLE_REVIEWS["🎭 Nuanced"])
             st.rerun()
 
-    # 2. Compact text area (80px = ~3 lines)
+    # Compact text area (74px = ~3 lines)
     review_text = st.text_area(
         label="Review Text",
         value=st.session_state.review_input,
-        height=82,
+        height=74,
         label_visibility="collapsed",
         placeholder="Type or paste your movie review here..."
     )
 
-    # 3. Analyze button
+    # Analyze Button
     if st.button("🚀 Analyze Sentiment & Extract Attention", type="primary", use_container_width=True):
         st.session_state.review_input = review_text
         st.rerun()
 
-    # 4. Directly underneath: Compact Explainability Tabs
+
+with col_top_right:
     if result is not None:
         is_positive = result["label"] == "Positive"
-        
-        tab_xai, tab_matrix, tab_diag = st.tabs([
-            "🔍 Attention Heatmap",
+        confidence = result["confidence"]
+        prob_pos = result["probabilities"]["Positive"]
+        prob_neg = result["probabilities"]["Negative"]
+
+        verdict_color = "#16a34a" if is_positive else "#dc2626"
+        verdict_bg = "#f0fdf4" if is_positive else "#fef2f2"
+        verdict_border = "#86efac" if is_positive else "#fca5a5"
+        verdict_label = "POSITIVE" if is_positive else "NEGATIVE"
+        verdict_icon = "🟢" if is_positive else "🔴"
+
+        # Consolidated Verdict Card + Architecture Badges
+        st.markdown(f"""
+        <div style="background-color: {verdict_bg}; border: 1.5px solid {verdict_border}; border-radius: 8px; padding: 10px 14px; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <span style="font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase;">Sentiment Verdict</span>
+                    <div style="font-size: 1.30rem; font-weight: 800; color: {verdict_color};">{verdict_icon} {verdict_label}</div>
+                </div>
+                <div style="text-align: right;">
+                    <span style="font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase;">Confidence</span>
+                    <div style="font-size: 1.30rem; font-weight: 800; color: #0f172a;">{confidence}%</div>
+                </div>
+            </div>
+            <div style="margin-top: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 600; margin-bottom: 2px;">
+                    <span style="color: #16a34a;">Positive: {prob_pos}%</span>
+                    <span style="color: #dc2626;">Negative: {prob_neg}%</span>
+                </div>
+                <div style="background-color: #fee2e2; border-radius: 4px; height: 7px; overflow: hidden; display: flex;">
+                    <div style="background-color: #22c55e; width: {prob_pos}%; height: 100%;"></div>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 6px; padding-top: 5px; border-top: 1px solid rgba(0,0,0,0.05); font-size: 0.72rem; color: #64748b;">
+                <span>Context: <b>128 tokens</b></span>
+                <span>Layers: <b>4 Blocks (4 Heads)</b></span>
+                <span>Checkpoint: <b>Verified PT</b></span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.info("👈 Enter a review on the left and click **Analyze Sentiment**.")
+
+
+# ==============================================================================
+# ROW 2: THE SPECIAL ATTENTION & XAI HERO SHOWCASE (Bottom Half)
+# ==============================================================================
+st.markdown("<div style='margin-top: 6px; margin-bottom: 6px; border-top: 1px solid #f1f5f9;'></div>", unsafe_allow_html=True)
+
+if result is not None:
+    is_positive = result["label"] == "Positive"
+    col_xai_left, col_xai_right = st.columns([1.12, 0.88], gap="medium")
+
+    # --- LEFT HERO: THE SPECIAL ATTENTION HEATMAP PLACE ---
+    with col_xai_left:
+        # Title + Interactive Color Legend Bar
+        legend_gradient = (
+            "linear-gradient(to right, rgba(46, 204, 113, 0.15), rgba(46, 204, 113, 0.85))"
+            if is_positive
+            else "linear-gradient(to right, rgba(231, 76, 60, 0.15), rgba(231, 76, 60, 0.85))"
+        )
+        legend_label = "Positive Attention" if is_positive else "Negative Attention"
+
+        st.markdown(f"""
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+            <div style="font-weight: 700; font-size: 0.90rem; color: #1e293b;">
+                🔬 Layer 4 Self-Attention Heatmap (XAI)
+            </div>
+            <div style="display: flex; align-items: center; font-size: 0.72rem; color: #64748b; gap: 5px;">
+                <span>Low</span>
+                <span style="display: inline-block; width: 55px; height: 7px; border-radius: 4px; background: {legend_gradient};"></span>
+                <span>High ({legend_label})</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        if "tokens" in result and result["tokens"]:
+            html_tokens = []
+            for t in result["tokens"]:
+                tok_str = t["token"]
+                norm = t["normalized"]
+                score_val = t["score"]
+                
+                # Check for special tokens
+                if tok_str in ["[CLS]", "[SEP]", "[PAD]"]:
+                    clean_tok = html.escape(tok_str)
+                    html_tokens.append(f'<span class="token-box token-special" title="Special Token">{clean_tok}</span>')
+                    continue
+
+                # Opacity scaling [0.15, 0.85]
+                alpha = 0.15 + (0.70 * norm)
+                
+                if is_positive:
+                    bg = f"rgba(46, 204, 113, {alpha:.2f})"
+                    border = "rgba(39, 174, 96, 0.40)"
+                    text_col = "#0e4b24" if norm > 0.6 else "#1b3823"
+                else:
+                    bg = f"rgba(231, 76, 60, {alpha:.2f})"
+                    border = "rgba(192, 57, 43, 0.40)"
+                    text_col = "#5a130b" if norm > 0.6 else "#381c18"
+
+                clean_tok = html.escape(tok_str)
+                html_tokens.append(
+                    f'<span class="token-box" style="background-color: {bg}; border: 1px solid {border}; '
+                    f'color: {text_col};" title="Attention Score: {score_val:.4f}">{clean_tok}</span>'
+                )
+
+            st.markdown(
+                f'<div class="heatmap-hero-container">{" ".join(html_tokens)}</div>',
+                unsafe_allow_html=True
+            )
+            st.caption("Hover over words to view exact Layer 4 attention weights. Darker colors denote tokens driving the verdict.")
+
+    # --- RIGHT PANEL: ATTENTION ANALYTICS & DIAGNOSTICS ---
+    with col_xai_right:
+        tab_chart, tab_matrix, tab_diag = st.tabs([
+            "🏆 Top Influential Words",
             "🗺️ 2D Attention Matrix",
-            "📐 Sequence Diagnostics"
+            "📐 Context Usage"
         ])
 
-        with tab_xai:
-            if "tokens" in result and result["tokens"]:
-                html_tokens = []
-                for t in result["tokens"]:
-                    tok_str = t["token"]
-                    norm = t["normalized"]
-                    score_val = t["score"]
-                    
-                    # Opacity scaling [0.15, 0.85]
-                    alpha = 0.15 + (0.70 * norm)
-                    
-                    if is_positive:
-                        bg = f"rgba(46, 204, 113, {alpha:.2f})"
-                        border = "rgba(39, 174, 96, 0.45)"
-                        text_col = "#0e4b24" if norm > 0.6 else "#1b3823"
-                    else:
-                        bg = f"rgba(231, 76, 60, {alpha:.2f})"
-                        border = "rgba(192, 57, 43, 0.45)"
-                        text_col = "#5a130b" if norm > 0.6 else "#381c18"
+        with tab_chart:
+            # Filter stopwords to surface real sentiment-carrying keywords
+            all_content = [
+                t for t in result["tokens"]
+                if t["token"].lower() not in COMMON_STOPWORDS and not t["token"].startswith("##")
+            ]
+            if not all_content:
+                all_content = [t for t in result["tokens"] if t["token"] not in ["[CLS]", "[SEP]", "[PAD]"]]
 
-                    clean_tok = html.escape(tok_str)
-                    html_tokens.append(
-                        f'<span class="token-box" style="background-color: {bg}; border: 1px solid {border}; '
-                        f'color: {text_col};" title="Attention: {score_val:.4f}">{clean_tok}</span>'
-                    )
-
-                st.markdown(
-                    f'<div class="token-container">{" ".join(html_tokens)}</div>',
-                    unsafe_allow_html=True
-                )
-                st.caption("Hover tokens to view exact Layer 4 self-attention weights. Darker = stronger influence.")
+            if all_content:
+                top_sorted = sorted(all_content, key=lambda x: x["score"], reverse=True)[:5]
+                df_chart = pd.DataFrame({
+                    "Word": [t["token"] for t in top_sorted],
+                    "Attention Weight": [t["score"] for t in top_sorted]
+                }).set_index("Word")
+                
+                chart_color = "#22c55e" if is_positive else "#ef4444"
+                st.bar_chart(df_chart, horizontal=True, color=chart_color, height=160)
+            else:
+                st.caption("No content tokens to display.")
 
         with tab_matrix:
             if "attention_matrix" in result and result["attention_matrix"]:
@@ -256,7 +370,7 @@ with col_main:
                 sub_matrix = matrix[:limit, :limit]
                 labels = [t["token"] for t in result["tokens"][:limit]]
 
-                fig, ax = plt.subplots(figsize=(4.8, 3.2))
+                fig, ax = plt.subplots(figsize=(4.5, 3.0))
                 im = ax.imshow(sub_matrix, cmap="Blues", interpolation="nearest")
                 fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
 
@@ -264,7 +378,7 @@ with col_main:
                 ax.set_xticklabels(labels, rotation=45, ha="right", fontsize=7)
                 ax.set_yticks(range(limit))
                 ax.set_yticklabels(labels, fontsize=7)
-                ax.set_title("Scaled Dot-Product Attention (Layer 4)", fontsize=8, fontweight="bold")
+                ax.set_title("Pairwise Self-Attention (Layer 4)", fontsize=8, fontweight="bold")
                 plt.tight_layout()
                 st.pyplot(fig)
                 plt.close(fig)
@@ -276,71 +390,8 @@ with col_main:
             
             if result["token_count"] > DEFAULT_CONFIG["context_size"]:
                 st.warning(
-                    f"Sequence truncated ({result['token_count']} > {DEFAULT_CONFIG['context_size']} max tokens) "
-                    r"to bound $\mathcal{O}(N^2)$ memory."
+                    f"Truncated: {result['token_count']} > {DEFAULT_CONFIG['context_size']} tokens "
+                    r"to bound $\mathcal{O}(N^2)$ attention memory."
                 )
             else:
-                st.info(f"Sequence fits within {DEFAULT_CONFIG['context_size']}-token context window.")
-
-
-with col_results:
-    if result is not None:
-        is_positive = result["label"] == "Positive"
-        confidence = result["confidence"]
-        prob_pos = result["probabilities"]["Positive"]
-        prob_neg = result["probabilities"]["Negative"]
-
-        # 1. Consolidated Verdict & Confidence Bar
-        verdict_color = "#16a34a" if is_positive else "#dc2626"
-        verdict_bg = "#f0fdf4" if is_positive else "#fef2f2"
-        verdict_border = "#86efac" if is_positive else "#fca5a5"
-        verdict_label = "POSITIVE" if is_positive else "NEGATIVE"
-        verdict_icon = "🟢" if is_positive else "🔴"
-
-        st.markdown(f"""
-        <div style="background-color: {verdict_bg}; border: 1.5px solid {verdict_border}; border-radius: 8px; padding: 10px 14px; margin-bottom: 10px;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <span style="font-size: 0.8rem; font-weight: 600; color: #64748b; text-transform: uppercase;">Sentiment Verdict</span>
-                    <div style="font-size: 1.35rem; font-weight: 800; color: {verdict_color};">{verdict_icon} {verdict_label}</div>
-                </div>
-                <div style="text-align: right;">
-                    <span style="font-size: 0.8rem; font-weight: 600; color: #64748b; text-transform: uppercase;">Confidence</span>
-                    <div style="font-size: 1.35rem; font-weight: 800; color: #0f172a;">{confidence}%</div>
-                </div>
-            </div>
-            <div style="margin-top: 6px;">
-                <div style="display: flex; justify-content: space-between; font-size: 0.78rem; font-weight: 600; margin-bottom: 2px;">
-                    <span style="color: #16a34a;">Positive: {prob_pos}%</span>
-                    <span style="color: #dc2626;">Negative: {prob_neg}%</span>
-                </div>
-                <div style="background-color: #fee2e2; border-radius: 4px; height: 8px; overflow: hidden; display: flex;">
-                    <div style="background-color: #22c55e; width: {prob_pos}%; height: 100%;"></div>
-                </div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        # 2. Prominent Semantic Driver Words Chart
-        # Filter out stopwords to surface real sentiment-carrying keywords
-        all_content = [
-            t for t in result["tokens"]
-            if t["token"].lower() not in COMMON_STOPWORDS and not t["token"].startswith("##")
-        ]
-        # Fall back to content tokens if review only has short tokens
-        if not all_content:
-            all_content = [t for t in result["tokens"] if t["token"] not in ["[CLS]", "[SEP]", "[PAD]"]]
-
-        if all_content:
-            st.markdown("<div style='font-weight: 700; font-size: 0.90rem; margin-bottom: 4px;'>🏆 Top Influential Words in Review</div>", unsafe_allow_html=True)
-            top_sorted = sorted(all_content, key=lambda x: x["score"], reverse=True)[:5]
-            df_chart = pd.DataFrame({
-                "Word": [t["token"] for t in top_sorted],
-                "Attention Weight": [t["score"] for t in top_sorted]
-            }).set_index("Word")
-            
-            chart_color = "#22c55e" if is_positive else "#ef4444"
-            st.bar_chart(df_chart, horizontal=True, color=chart_color, height=175)
-    else:
-        st.info("👈 Enter a review on the left and click **Analyze Sentiment** to view predictions.")
-
+                st.info(f"Fits within the {DEFAULT_CONFIG['context_size']}-token context window.")
