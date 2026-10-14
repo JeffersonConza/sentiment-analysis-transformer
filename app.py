@@ -1,6 +1,6 @@
 """
 SentimentScope - Interactive Streamlit Web Application
-Real-time sentiment classification & Attention XAI using a custom Transformer built in PyTorch.
+Single-Screen Viewport Dashboard: Real-time Sentiment Classification & Attention XAI.
 """
 import html
 import numpy as np
@@ -19,37 +19,58 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Custom Styling to optimize layout and reduce dead whitespace
+# High-density CSS to guarantee complete "above-the-fold" single-screen view without scrolling
 st.markdown("""
 <style>
+    /* Reduce top/bottom padding to fit viewport */
     .block-container {
-        padding-top: 1.8rem;
-        padding-bottom: 2rem;
+        padding-top: 1rem !important;
+        padding-bottom: 0.5rem !important;
+        padding-left: 2rem !important;
+        padding-right: 2rem !important;
+        max-width: 100% !important;
     }
-    .metric-card {
-        background-color: #f8f9fa;
-        border-radius: 8px;
-        padding: 12px;
-        border-left: 4px solid #4a6fa5;
-        margin-bottom: 10px;
+    /* Compact headings and elements */
+    h1, h2, h3, h4, h5, p {
+        margin-top: 0.1rem !important;
+        margin-bottom: 0.25rem !important;
     }
+    /* Compact token badge */
     .token-box {
         display: inline-block;
-        padding: 3px 8px;
-        margin: 3px 2px;
-        border-radius: 5px;
+        padding: 2px 6px;
+        margin: 2px 1px;
+        border-radius: 4px;
         font-family: monospace;
-        font-size: 0.92rem;
+        font-size: 0.88rem;
         transition: transform 0.1s ease;
     }
     .token-box:hover {
-        transform: scale(1.06);
+        transform: scale(1.08);
+    }
+    /* Scrollable token container with fixed height */
+    .token-container {
+        background-color: #fdfdfd;
+        padding: 8px 12px;
+        border-radius: 6px;
+        border: 1px solid #e2e8f0;
+        max-height: 145px;
+        overflow-y: auto;
+        line-height: 1.8;
+    }
+    /* Streamlit tabs compact styling */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+    }
+    .stTabs [data-baseweb="tab"] {
+        padding: 4px 10px !important;
+        font-size: 0.85rem !important;
     }
 </style>
 """, unsafe_allow_html=True)
 
 
-@st.cache_resource(show_spinner="Loading PyTorch Transformer checkpoint & BERT tokenizer...")
+@st.cache_resource(show_spinner="Loading PyTorch Transformer & BERT tokenizer...")
 def load_predictor():
     """Caches the predictor instance in memory for instantaneous inference."""
     return SentimentPredictor(checkpoint_path="sentiment_transformer.pt")
@@ -61,22 +82,32 @@ if "review_input" not in st.session_state:
 
 # Pre-defined sample reviews
 SAMPLE_REVIEWS = {
-    "🌟 Positive (Rave Review)": (
+    "🌟 Positive": (
         "An absolute masterpiece of modern cinema! The directing was sharp, the score was mesmerizing, "
-        "and every single scene delivered authentic emotional resonance. A must-watch experience."
+        "and every scene delivered authentic emotional resonance."
     ),
-    "👎 Negative (Critical Pan)": (
+    "👎 Negative": (
         "A dull, completely predictable mess with zero character development. The pacing dragged endlessly "
-        "and the dialogue felt completely robotic and uninspired. Save your money and skip this."
+        "and the dialogue felt completely robotic and uninspired."
     ),
-    "🎭 Nuanced (Mixed Sentiment)": (
+    "🎭 Nuanced": (
         "The visual effects and lead actors were undeniably impressive, but the chaotic script and abrupt ending "
-        "ultimately prevented it from reaching its full potential."
+        "prevented it from reaching its potential."
     )
 }
 
 def set_sample_text(text: str):
     st.session_state.review_input = text
+
+
+# Stopwords list to surface genuine semantic driver words in the influence chart
+COMMON_STOPWORDS = {
+    "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "of", "with",
+    "by", "from", "up", "about", "into", "over", "after", "is", "are", "was", "were",
+    "be", "been", "being", "have", "has", "had", "do", "does", "did", "it", "its",
+    "this", "that", "these", "those", "i", "you", "he", "she", "we", "they", "my",
+    "your", "his", "her", "our", "their", "[cls]", "[sep]", "[pad]"
+}
 
 
 # --- SIDEBAR: Architecture & Specs ---
@@ -101,17 +132,13 @@ with st.sidebar:
     st.markdown("""
     - **Test Accuracy**: **76.88%** *(IMDB 25,000 test set)*
     - **Macro F1-Score**: **0.7688**
-    - **Official Review**: **Passed on Attempt 1** (100% rubric compliance)
+    - **Official Review**: **Passed on Attempt 1** (100% rubric)
     - **Loss Progression**: `0.566` (Ep 1) ➔ `0.428` (Ep 3)
     """)
 
     st.markdown("---")
     st.subheader("🚀 Cloud Deployment")
-    st.markdown("""
-    This app is **100% ready for Hugging Face Spaces**.
-    - Free CPU hosting via Hugging Face.
-    - Zero external infrastructure needed.
-    """)
+    st.markdown("Ready for **Hugging Face Spaces** free CPU hosting.")
 
     st.markdown("---")
     st.markdown("### 🔗 Links")
@@ -120,112 +147,124 @@ with st.sidebar:
     st.markdown("[📓 Notebook Walkthrough](docs/NOTEBOOK_WALKTHROUGH.md)")
 
 
-# --- MAIN HEADER ---
-st.title("🎬 SentimentScope")
-st.subheader("Explainable Sentiment Analysis with a From-Scratch PyTorch Transformer")
+# --- ULTRA-COMPACT 1-LINE HEADER ---
 st.markdown("""
-An interactive NLP system implementing a **custom 4-layer Transformer** in pure PyTorch for binary movie review classification.
-Featuring real-time prediction and **Multi-Head Self-Attention Explainability (XAI)**.
-""")
+<div style="display: flex; align-items: baseline; justify-content: space-between; border-bottom: 2px solid #f1f5f9; padding-bottom: 4px; margin-bottom: 10px;">
+    <div>
+        <span style="font-size: 1.45rem; font-weight: 800; color: #0f172a;">🎬 SentimentScope</span>
+        <span style="font-size: 0.90rem; color: #64748b; margin-left: 10px;">From-Scratch PyTorch Transformer & Explainable AI (XAI)</span>
+    </div>
+    <div>
+        <span style="background: #e0e7ff; color: #3730a3; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; font-weight: 600;">Test Acc: 76.88%</span>
+        <span style="background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; font-weight: 600; margin-left: 4px;">Passed Attempt 1</span>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
-st.markdown("---")
 
-# Balanced 2-Column Layout to eliminate dead space
-col_main, col_results = st.columns([1.1, 0.9], gap="large")
+# --- 2 BALANCED COLUMNS (FIT ENTIRELY IN VIEWPORT) ---
+col_main, col_results = st.columns([1.1, 0.9], gap="medium")
+
+# Execute prediction immediately so both columns have data ready
+result = None
+if st.session_state.review_input.strip():
+    try:
+        predictor = load_predictor()
+        result = predictor.predict(st.session_state.review_input, return_attention=True)
+    except Exception as e:
+        st.error(f"Inference error: {e}")
+
 
 with col_main:
-    st.markdown("### ✍️ Input Movie Review")
-    
-    st.caption("Quick Load Sample Reviews:")
-    sample_cols = st.columns(len(SAMPLE_REVIEWS))
-    for i, (label, text) in enumerate(SAMPLE_REVIEWS.items()):
-        if sample_cols[i].button(label, use_container_width=True):
-            set_sample_text(text)
+    # 1. Header & Sample Buttons in a single aligned row
+    col_hdr, col_s1, col_s2, col_s3 = st.columns([1.1, 0.9, 0.9, 0.9])
+    with col_hdr:
+        st.markdown("<div style='font-weight: 700; font-size: 0.95rem; margin-top: 4px;'>✍️ Input Review</div>", unsafe_allow_html=True)
+    with col_s1:
+        if st.button("🌟 Positive", use_container_width=True):
+            set_sample_text(SAMPLE_REVIEWS["🌟 Positive"])
+            st.rerun()
+    with col_s2:
+        if st.button("👎 Negative", use_container_width=True):
+            set_sample_text(SAMPLE_REVIEWS["👎 Negative"])
+            st.rerun()
+    with col_s3:
+        if st.button("🎭 Nuanced", use_container_width=True):
+            set_sample_text(SAMPLE_REVIEWS["🎭 Nuanced"])
+            st.rerun()
 
+    # 2. Compact text area (80px = ~3 lines)
     review_text = st.text_area(
-        "Enter or paste movie review text below:",
+        label="Review Text",
         value=st.session_state.review_input,
-        height=135,
-        placeholder="Type your movie review here..."
+        height=82,
+        label_visibility="collapsed",
+        placeholder="Type or paste your movie review here..."
     )
 
-    analyze_clicked = st.button("🚀 Analyze Sentiment & Explain Attention", type="primary", use_container_width=True)
+    # 3. Analyze button
+    if st.button("🚀 Analyze Sentiment & Extract Attention", type="primary", use_container_width=True):
+        st.session_state.review_input = review_text
+        st.rerun()
 
-    # Execute Prediction and Attention Extraction
-    result = None
-    if review_text.strip():
-        try:
-            predictor = load_predictor()
-            with st.spinner("Analyzing sequence through multi-head self-attention layers..."):
-                result = predictor.predict(review_text, return_attention=True)
-        except Exception as e:
-            st.exception(f"Error performing inference: {e}")
-
-    # Directly beneath the input: Explainable Attention Diagnostics
+    # 4. Directly underneath: Compact Explainability Tabs
     if result is not None:
         is_positive = result["label"] == "Positive"
         
-        st.markdown("---")
-        st.markdown("#### 🔬 Explainable Attention Diagnostics")
         tab_xai, tab_matrix, tab_diag = st.tabs([
-            "🔍 Attention Heatmap (XAI)",
+            "🔍 Attention Heatmap",
             "🗺️ 2D Attention Matrix",
             "📐 Sequence Diagnostics"
         ])
 
         with tab_xai:
-            st.caption(
-                "Each word is highlighted by the attention weight received from all positions in Layer 4. "
-                "Darker shades indicate key tokens guiding the classification."
-            )
             if "tokens" in result and result["tokens"]:
                 html_tokens = []
                 for t in result["tokens"]:
                     tok_str = t["token"]
                     norm = t["normalized"]
+                    score_val = t["score"]
                     
                     # Opacity scaling [0.15, 0.85]
                     alpha = 0.15 + (0.70 * norm)
                     
                     if is_positive:
                         bg = f"rgba(46, 204, 113, {alpha:.2f})"
-                        border = "rgba(39, 174, 96, 0.5)"
+                        border = "rgba(39, 174, 96, 0.45)"
                         text_col = "#0e4b24" if norm > 0.6 else "#1b3823"
                     else:
                         bg = f"rgba(231, 76, 60, {alpha:.2f})"
-                        border = "rgba(192, 57, 43, 0.5)"
+                        border = "rgba(192, 57, 43, 0.45)"
                         text_col = "#5a130b" if norm > 0.6 else "#381c18"
 
                     clean_tok = html.escape(tok_str)
-                    score_val = t["score"]
                     html_tokens.append(
                         f'<span class="token-box" style="background-color: {bg}; border: 1px solid {border}; '
-                        f'color: {text_col};" title="Attention Score: {score_val:.4f}">{clean_tok}</span>'
+                        f'color: {text_col};" title="Attention: {score_val:.4f}">{clean_tok}</span>'
                     )
 
                 st.markdown(
-                    f'<div style="background-color: #fdfdfd; padding: 12px; border-radius: 8px; '
-                    f'border: 1px solid #e0e0e0; line-height: 2.1;">{" ".join(html_tokens)}</div>',
+                    f'<div class="token-container">{" ".join(html_tokens)}</div>',
                     unsafe_allow_html=True
                 )
+                st.caption("Hover tokens to view exact Layer 4 self-attention weights. Darker = stronger influence.")
 
         with tab_matrix:
-            st.caption("Pairwise query-to-key attention weights across sequence positions in Layer 4.")
             if "attention_matrix" in result and result["attention_matrix"]:
                 matrix = np.array(result["attention_matrix"])
-                limit = min(len(result["tokens"]), 14)
+                limit = min(len(result["tokens"]), 12)
                 sub_matrix = matrix[:limit, :limit]
                 labels = [t["token"] for t in result["tokens"][:limit]]
 
-                fig, ax = plt.subplots(figsize=(5.5, 4.5))
+                fig, ax = plt.subplots(figsize=(4.8, 3.2))
                 im = ax.imshow(sub_matrix, cmap="Blues", interpolation="nearest")
                 fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
 
                 ax.set_xticks(range(limit))
-                ax.set_xticklabels(labels, rotation=45, ha="right", fontsize=8)
+                ax.set_xticklabels(labels, rotation=45, ha="right", fontsize=7)
                 ax.set_yticks(range(limit))
-                ax.set_yticklabels(labels, fontsize=8)
-                ax.set_title("Scaled Dot-Product Attention (Layer 4)", fontsize=10, fontweight="bold")
+                ax.set_yticklabels(labels, fontsize=7)
+                ax.set_title("Scaled Dot-Product Attention (Layer 4)", fontsize=8, fontweight="bold")
                 plt.tight_layout()
                 st.pyplot(fig)
                 plt.close(fig)
@@ -233,74 +272,75 @@ with col_main:
         with tab_diag:
             col_d1, col_d2 = st.columns(2)
             col_d1.metric("Input Tokens", result["token_count"])
-            col_d2.metric("Tokens Processed", f"{result['tokens_used']} / {DEFAULT_CONFIG['context_size']}")
+            col_d2.metric("Processed Tokens", f"{result['tokens_used']} / {DEFAULT_CONFIG['context_size']}")
             
             if result["token_count"] > DEFAULT_CONFIG["context_size"]:
                 st.warning(
-                    f"⚠️ Review length ({result['token_count']} tokens) exceeds maximum context window "
-                    f"({DEFAULT_CONFIG['context_size']} tokens). Input was automatically truncated to bound "
-                    r"$\mathcal{O}(N^2)$ self-attention memory overhead."
+                    f"Sequence truncated ({result['token_count']} > {DEFAULT_CONFIG['context_size']} max tokens) "
+                    r"to bound $\mathcal{O}(N^2)$ memory."
                 )
             else:
-                st.info(
-                    f"ℹ️ Input length fits within the {DEFAULT_CONFIG['context_size']}-token context window "
-                    "and was padded to standard dimension."
-                )
-    elif not review_text.strip():
-        st.info("👈 Please enter review text to inspect attention.")
+                st.info(f"Sequence fits within {DEFAULT_CONFIG['context_size']}-token context window.")
 
 
 with col_results:
-    st.markdown("### 📊 Real-Time Classification")
-    
     if result is not None:
         is_positive = result["label"] == "Positive"
         confidence = result["confidence"]
         prob_pos = result["probabilities"]["Positive"]
         prob_neg = result["probabilities"]["Negative"]
 
-        # Sentiment Verdict Banner
-        if is_positive:
-            st.success(f"### 🟢 Sentiment: **Positive** ({confidence}%)")
-        else:
-            st.error(f"### 🔴 Sentiment: **Negative** ({confidence}%)")
+        # 1. Consolidated Verdict & Confidence Bar
+        verdict_color = "#16a34a" if is_positive else "#dc2626"
+        verdict_bg = "#f0fdf4" if is_positive else "#fef2f2"
+        verdict_border = "#86efac" if is_positive else "#fca5a5"
+        verdict_label = "POSITIVE" if is_positive else "NEGATIVE"
+        verdict_icon = "🟢" if is_positive else "🔴"
 
-        # Probability Distribution Bars
-        st.markdown("#### Confidence Breakdown")
-        col_p1, col_p2 = st.columns(2)
-        with col_p1:
-            st.metric("Positive Probability", f"{prob_pos}%")
-            st.progress(prob_pos / 100.0)
-        with col_p2:
-            st.metric("Negative Probability", f"{prob_neg}%")
-            st.progress(prob_neg / 100.0)
+        st.markdown(f"""
+        <div style="background-color: {verdict_bg}; border: 1.5px solid {verdict_border}; border-radius: 8px; padding: 10px 14px; margin-bottom: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <span style="font-size: 0.8rem; font-weight: 600; color: #64748b; text-transform: uppercase;">Sentiment Verdict</span>
+                    <div style="font-size: 1.35rem; font-weight: 800; color: {verdict_color};">{verdict_icon} {verdict_label}</div>
+                </div>
+                <div style="text-align: right;">
+                    <span style="font-size: 0.8rem; font-weight: 600; color: #64748b; text-transform: uppercase;">Confidence</span>
+                    <div style="font-size: 1.35rem; font-weight: 800; color: #0f172a;">{confidence}%</div>
+                </div>
+            </div>
+            <div style="margin-top: 6px;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.78rem; font-weight: 600; margin-bottom: 2px;">
+                    <span style="color: #16a34a;">Positive: {prob_pos}%</span>
+                    <span style="color: #dc2626;">Negative: {prob_neg}%</span>
+                </div>
+                <div style="background-color: #fee2e2; border-radius: 4px; height: 8px; overflow: hidden; display: flex;">
+                    <div style="background-color: #22c55e; width: {prob_pos}%; height: 100%;"></div>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
-        # Prominent Top Influential Words Chart
-        content_tokens = [
+        # 2. Prominent Semantic Driver Words Chart
+        # Filter out stopwords to surface real sentiment-carrying keywords
+        all_content = [
             t for t in result["tokens"]
-            if t["token"] not in ["[CLS]", "[SEP]", "[PAD]"] and not t["token"].startswith("##")
+            if t["token"].lower() not in COMMON_STOPWORDS and not t["token"].startswith("##")
         ]
-        if content_tokens:
-            st.markdown("---")
-            st.markdown("##### 🏆 Most Influential Words in Review")
-            top_sorted = sorted(content_tokens, key=lambda x: x["score"], reverse=True)[:6]
+        # Fall back to content tokens if review only has short tokens
+        if not all_content:
+            all_content = [t for t in result["tokens"] if t["token"] not in ["[CLS]", "[SEP]", "[PAD]"]]
+
+        if all_content:
+            st.markdown("<div style='font-weight: 700; font-size: 0.90rem; margin-bottom: 4px;'>🏆 Top Influential Words in Review</div>", unsafe_allow_html=True)
+            top_sorted = sorted(all_content, key=lambda x: x["score"], reverse=True)[:5]
             df_chart = pd.DataFrame({
                 "Word": [t["token"] for t in top_sorted],
                 "Attention Weight": [t["score"] for t in top_sorted]
             }).set_index("Word")
             
-            chart_color = "#2ecc71" if is_positive else "#e74c3c"
-            st.bar_chart(df_chart, horizontal=True, color=chart_color)
-
-        # Quick Architecture Specs
-        st.markdown("---")
-        st.markdown("##### ⚡ Architecture Quick-Glance")
-        col_q1, col_q2, col_q3 = st.columns(3)
-        col_q1.metric("Layers", DEFAULT_CONFIG["layers_num"])
-        col_q2.metric("Heads", DEFAULT_CONFIG["heads_num"])
-        col_q3.metric("Context", f"{DEFAULT_CONFIG['context_size']} tok")
+            chart_color = "#22c55e" if is_positive else "#ef4444"
+            st.bar_chart(df_chart, horizontal=True, color=chart_color, height=175)
     else:
         st.info("👈 Enter a review on the left and click **Analyze Sentiment** to view predictions.")
 
-st.markdown("---")
-st.caption("Built with PyTorch & Streamlit • Developed by Jefferson Conza • AWS AI & ML Scholars")
