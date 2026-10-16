@@ -23,6 +23,10 @@ license: mit
 
 An end-to-end Natural Language Processing (NLP) system implementing and training a **custom Transformer model from scratch** in PyTorch for binary sentiment classification on the **IMDB Movie Review dataset** (50,000 reviews).
 
+<p align="center">
+  <img src="assets/demo.gif" width="100%" alt="SentimentScope Interactive Dashboard & Attention Heatmap Demo" />
+</p>
+
 ---
 
 ## 📌 Project Highlights
